@@ -1,6 +1,7 @@
 package database
 
 import (
+	"gop-api/app/config"
 	"log"
 
 	"gorm.io/driver/mysql"
@@ -9,8 +10,8 @@ import (
 
 var Db *gorm.DB
 
-func Init() *gorm.DB {
-	dsn := "root:root@tcp(127.0.0.1:3306)/gop-api?charset=utf8mb4&parseTime=True&loc=Local"
+func Init(conf config.Conf) *gorm.DB {
+	dsn := conf.Database.User + ":" + conf.Database.Pass + "@tcp(" + conf.Database.Host + ":" + conf.Database.Port + ")/" + conf.Database.Name + "?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("DB Connection error")
