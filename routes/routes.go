@@ -26,12 +26,12 @@ func Init(db *gorm.DB) *gin.Engine {
 		})
 	})
 
-	apiV1 := router.Group("api/user/v1")
+	apiV1 := router.Group("api/v1/user")
 	apiV1.POST("/login", userHandler.Login)
-	apiV1.POST("/create", userHandler.AddUser)
-	apiV1.GET("/list", middlewares.ApiAuth(token, userService), userHandler.User)
-	apiV1.GET("/detail/:id", middlewares.ApiAuth(token, userService), userHandler.DetailUser)
-	apiV1.PUT("/edit/:id", middlewares.ApiAuth(token, userService), userHandler.UpdateUser)
-	apiV1.DELETE("/delete/:id", middlewares.ApiAuth(token, userService), userHandler.DeleteUser)
+	apiV1.POST("/register", userHandler.AddUser)
+	apiV1.GET("/", middlewares.ApiAuth(token, userService), userHandler.User)
+	apiV1.GET("/:id", middlewares.ApiAuth(token, userService), userHandler.DetailUser)
+	apiV1.PUT("/:id", middlewares.ApiAuth(token, userService), userHandler.UpdateUser)
+	apiV1.DELETE("/:id", middlewares.ApiAuth(token, userService), userHandler.DeleteUser)
 	return router
 }
