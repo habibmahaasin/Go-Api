@@ -4,6 +4,9 @@ Repository untuk belajar membuat API dengan golang dan library Gin dan Gorm
 
 Cara Setup dan Menjalankan
 1. Clone/Download Repository
+```
+$ git clone https://github.com/habibmahaasin/Go-Api.git
+```
 2. Import SQL file yang ada pada direktori :
 ```
 ./sql/gop-api.sql 
