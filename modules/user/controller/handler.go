@@ -1,6 +1,7 @@
 package controller
 
 import (
+	jwttoken "gop-api/app/jwt-token"
 	"gop-api/modules/user/models"
 	"gop-api/modules/user/service"
 	"net/http"
@@ -10,10 +11,11 @@ import (
 
 type userHandler struct {
 	service service.UserService
+	token   jwttoken.JwtToken
 }
 
-func NewUserHandler(service service.UserService) *userHandler {
-	return &userHandler{service}
+func NewUserHandler(service service.UserService, token jwttoken.JwtToken) *userHandler {
+	return &userHandler{service, token}
 }
 
 func (h *userHandler) User(c *gin.Context) {
@@ -90,6 +92,8 @@ func (h *userHandler) Login(c *gin.Context) {
 		return
 	}
 
+	getToken, _ := h.token.GenerateJwt(user.User_uuid, user.Name)
+
 	response := models.UserResponse{
 		User_uuid: user.User_uuid,
 		Email:     user.Email,
@@ -100,6 +104,7 @@ func (h *userHandler) Login(c *gin.Context) {
 		"status":  http.StatusOK,
 		"message": "Success",
 		"data":    response,
+		"token":   getToken,
 	})
 
 }
