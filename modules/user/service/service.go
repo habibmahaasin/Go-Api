@@ -39,6 +39,11 @@ func (s *userService) UpdateUser(id string, inputUpdate models.User) (models.Use
 	hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	inputUpdate.Password = string(hashedPassword)
 
+	findUser, _ := s.repository.FindUserByEmail(inputUpdate.Email)
+	if findUser.Email != "" {
+		return findUser, errors.New("Email Already Exists")
+	}
+
 	return s.repository.UpdateUser(id, inputUpdate)
 }
 

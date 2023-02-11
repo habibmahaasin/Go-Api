@@ -4,6 +4,7 @@ import (
 	jwttoken "gop-api/app/jwt-token"
 	"gop-api/modules/user/models"
 	"gop-api/modules/user/service"
+	apiresponse "gop-api/package/api-response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,90 +22,60 @@ func NewUserHandler(service service.UserService, token jwttoken.JwtToken) *userH
 func (h *userHandler) User(c *gin.Context) {
 	user, err := h.service.GetUser()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  http.StatusInternalServerError,
-			"message": "User Handler Error",
-		})
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
 		return
 	}
 
 	var userResponse []models.UserResponse
 
 	for _, r := range user {
-		response := models.UserResponse{
-			User_uuid: r.User_uuid,
-			Email:     r.Email,
-			Name:      r.Name,
-		}
-		userResponse = append(userResponse, response)
+		response := apiresponse.ResponeFormat(r.User_uuid, r.Name, r.Email)
+		userResponse = append(userResponse, models.UserResponse(response))
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  http.StatusOK,
-		"message": "Success",
-		"data":    userResponse,
-	})
+	c.JSON(http.StatusOK, apiresponse.ResponData("Success", http.StatusOK, userResponse))
 }
 
 func (h *userHandler) AddUser(c *gin.Context) {
 	var input models.AddUser
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  http.StatusBadRequest,
-			"message": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
 		return
 	}
 
 	err := h.service.AddUser(input)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  http.StatusBadRequest,
-			"message": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  http.StatusOK,
-		"message": "Success",
-	})
+	c.JSON(http.StatusOK, apiresponse.ResponStatus("Success", http.StatusOK))
 }
 
 func (h *userHandler) Login(c *gin.Context) {
 	var inputLogin models.InputLogin
 
 	if err := c.ShouldBindJSON(&inputLogin); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  http.StatusBadRequest,
-			"message": err.Error(),
-		})
+		response := apiresponse.ResponStatus(err.Error(), http.StatusBadRequest)
+		c.JSON(400, response)
 		return
 	}
 
 	user, err := h.service.Login(inputLogin)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  http.StatusUnauthorized,
-			"message": err.Error(),
-		})
+		c.JSON(http.StatusUnauthorized, apiresponse.ResponStatus(err.Error(), http.StatusUnauthorized))
 		return
 	}
 
-	getToken, _ := h.token.GenerateJwt(user.User_uuid, user.Name)
-
-	response := models.UserResponse{
-		User_uuid: user.User_uuid,
-		Email:     user.Email,
-		Name:      user.Name,
-	}
+	token, _ := h.token.GenerateJwt(user.User_uuid, user.Name)
+	response := apiresponse.ResponeFormat(user.User_uuid, user.Name, user.Email)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Success",
 		"data":    response,
-		"token":   getToken,
+		"token":   token,
 	})
 
 }
@@ -114,24 +85,17 @@ func (h *userHandler) DetailUser(c *gin.Context) {
 	user, err := h.service.GetUserById(id)
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  http.StatusUnauthorized,
-			"message": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
 		return
 	}
 
-	response := models.UserResponse{
-		User_uuid: user.User_uuid,
-		Email:     user.Email,
-		Name:      user.Name,
+	if user.User_uuid == "" {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  http.StatusOK,
-		"message": "Success",
-		"detail":  response,
-	})
+	response := apiresponse.ResponeFormat(user.User_uuid, user.Name, user.Email)
+	c.JSON(http.StatusOK, apiresponse.ResponData("Success", http.StatusOK, response))
 }
 
 func (h *userHandler) UpdateUser(c *gin.Context) {
@@ -139,51 +103,45 @@ func (h *userHandler) UpdateUser(c *gin.Context) {
 	var input models.User
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  http.StatusBadRequest,
-			"message": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
 		return
 	}
 
 	_, err := h.service.UpdateUser(id, input)
-	userUpdated, err := h.service.GetUserById(id)
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  http.StatusBadRequest,
-			"message": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
 		return
 	}
 
-	response := models.UserResponse{
-		User_uuid: userUpdated.User_uuid,
-		Email:     userUpdated.Email,
-		Name:      userUpdated.Name,
+	userUpdated, err := h.service.GetUserById(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":       http.StatusOK,
-		"message":      "Success",
-		"data_updated": response,
-	})
+	if userUpdated.User_uuid == "" {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
+		return
+	}
+
+	response := apiresponse.ResponeFormat(userUpdated.User_uuid, userUpdated.Name, userUpdated.Email)
+	c.JSON(http.StatusOK, apiresponse.ResponData("Success", http.StatusOK, response))
 }
 
 func (h *userHandler) DeleteUser(c *gin.Context) {
 	id := c.Param("id")
-	_, err := h.service.DeleteUser(id)
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  http.StatusBadRequest,
-			"message": err.Error(),
-		})
+	check, _ := h.service.GetUserById(id)
+	if id != check.User_uuid {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  http.StatusOK,
-		"message": "Success",
-	})
+	_, err := h.service.DeleteUser(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
+		return
+	}
+
+	c.JSON(http.StatusOK, apiresponse.ResponStatus("Success", http.StatusOK))
 }
