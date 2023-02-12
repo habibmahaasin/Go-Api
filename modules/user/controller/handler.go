@@ -5,7 +5,7 @@ import (
 	"gop-api/modules/user/models"
 	"gop-api/modules/user/service"
 	apiresponse "gop-api/package/api-response"
-	errorresponse "gop-api/package/error-response"
+	bindvalidator "gop-api/package/bind-validator"
 	jwttoken "gop-api/package/jwt-token"
 	"net/http"
 
@@ -44,11 +44,11 @@ func (h *userHandler) AddUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&input); err != nil {
 		var validator validator.ValidationErrors
 		if errors.As(err, &validator) {
-			res := make([]errorresponse.ErrorStruct, len(validator))
+			res := make([]bindvalidator.ErrorStruct, len(validator))
 			for i, e := range validator {
-				res[i] = errorresponse.ErrorStruct{
+				res[i] = bindvalidator.ErrorStruct{
 					Field: e.Field(),
-					Error: errorresponse.BindingValidator(e),
+					Error: bindvalidator.BindingValidator(e),
 				}
 			}
 			c.JSON(400, apiresponse.ResponStatus(res, http.StatusBadRequest))
@@ -77,11 +77,11 @@ func (h *userHandler) Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&inputLogin); err != nil {
 		var validator validator.ValidationErrors
 		if errors.As(err, &validator) {
-			res := make([]errorresponse.ErrorStruct, len(validator))
+			res := make([]bindvalidator.ErrorStruct, len(validator))
 			for i, e := range validator {
-				res[i] = errorresponse.ErrorStruct{
+				res[i] = bindvalidator.ErrorStruct{
 					Field: e.Field(),
-					Error: errorresponse.BindingValidator(e),
+					Error: bindvalidator.BindingValidator(e),
 				}
 			}
 			c.JSON(400, apiresponse.ResponStatus(res, http.StatusBadRequest))
@@ -132,11 +132,11 @@ func (h *userHandler) UpdateUser(c *gin.Context) {
 	if err := c.ShouldBindJSON(&input); err != nil {
 		var validator validator.ValidationErrors
 		if errors.As(err, &validator) {
-			res := make([]errorresponse.ErrorStruct, len(validator))
+			res := make([]bindvalidator.ErrorStruct, len(validator))
 			for i, e := range validator {
-				res[i] = errorresponse.ErrorStruct{
+				res[i] = bindvalidator.ErrorStruct{
 					Field: e.Field(),
-					Error: errorresponse.BindingValidator(e),
+					Error: bindvalidator.BindingValidator(e),
 				}
 			}
 			c.JSON(400, apiresponse.ResponStatus(res, http.StatusBadRequest))

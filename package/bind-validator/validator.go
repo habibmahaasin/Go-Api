@@ -1,4 +1,4 @@
-package errorresponse
+package bindvalidator
 
 import "github.com/go-playground/validator/v10"
 
