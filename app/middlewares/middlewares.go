@@ -42,7 +42,7 @@ func ApiAuth(jwtAuth jwttoken.JwtToken, userService service.UserService) gin.Han
 			return
 		}
 
-		if user.User_uuid == "" {
+		if user.User_id == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"code":    http.StatusUnauthorized,
 				"message": "Invalid Token",

@@ -29,7 +29,7 @@ func (h *userHandler) User(c *gin.Context) {
 	var userResponse []models.UserResponse
 
 	for _, r := range user {
-		response := apiresponse.ResponeFormat(r.User_uuid, r.Name, r.Email)
+		response := apiresponse.UserFormat(r.User_id, r.Name, r.Email)
 		userResponse = append(userResponse, models.UserResponse(response))
 	}
 
@@ -41,6 +41,12 @@ func (h *userHandler) AddUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
+		return
+	}
+
+	checkEmail, _ := h.service.GetUserByEmail(input.Email)
+	if checkEmail.Email != "" {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("Email Already Used", http.StatusBadRequest))
 		return
 	}
 
@@ -68,8 +74,8 @@ func (h *userHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token, _ := h.token.GenerateJwt(user.User_uuid, user.Name)
-	response := apiresponse.ResponeFormat(user.User_uuid, user.Name, user.Email)
+	token, _ := h.token.GenerateJwt(user.User_id, user.Name)
+	response := apiresponse.UserFormat(user.User_id, user.Name, user.Email)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
@@ -89,12 +95,12 @@ func (h *userHandler) DetailUser(c *gin.Context) {
 		return
 	}
 
-	if user.User_uuid == "" {
+	if user.User_id == "" {
 		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
 		return
 	}
 
-	response := apiresponse.ResponeFormat(user.User_uuid, user.Name, user.Email)
+	response := apiresponse.UserFormat(user.User_id, user.Name, user.Email)
 	c.JSON(http.StatusOK, apiresponse.ResponData("Success", http.StatusOK, response))
 }
 
@@ -107,24 +113,19 @@ func (h *userHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	_, err := h.service.UpdateUser(id, input)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
-		return
-	}
-
-	userUpdated, err := h.service.GetUserById(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
-		return
-	}
-
-	if userUpdated.User_uuid == "" {
+	checkId, _ := h.service.GetUserById(id)
+	if id != checkId.User_id {
 		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
 		return
 	}
 
-	response := apiresponse.ResponeFormat(userUpdated.User_uuid, userUpdated.Name, userUpdated.Email)
+	userUpdated, err := h.service.UpdateUser(id, input)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
+		return
+	}
+
+	response := apiresponse.UserFormat(userUpdated.User_id, userUpdated.Name, userUpdated.Email)
 	c.JSON(http.StatusOK, apiresponse.ResponData("Success", http.StatusOK, response))
 }
 
@@ -132,7 +133,7 @@ func (h *userHandler) DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
 	check, _ := h.service.GetUserById(id)
-	if id != check.User_uuid {
+	if id != check.User_id {
 		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
 		return
 	}

@@ -17,11 +17,11 @@ func ResponStatus(message string, code int) ResponseSts {
 	return jsonResp
 }
 
-func ResponeFormat(user_uuid string, name string, email string) UserResponse {
+func UserFormat(user_id string, name string, email string) UserResponse {
 	jsonResp := UserResponse{
-		User_uuid: user_uuid,
-		Name:      name,
-		Email:     email,
+		User_id: user_id,
+		Name:    name,
+		Email:   email,
 	}
 	return jsonResp
 }

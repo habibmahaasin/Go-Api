@@ -5,17 +5,17 @@ import (
 	"gop-api/modules/user/models"
 	"gop-api/modules/user/repository"
 
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
-	GetUser() ([]models.User, error)
-	AddUser(addUser models.AddUser) error
 	Login(inputLogin models.InputLogin) (models.User, error)
-	GetUserById(id string) (models.User, error)
+	AddUser(addUser models.AddUser) error
 	UpdateUser(id string, inputUpdate models.User) (models.User, error)
 	DeleteUser(id string) (models.User, error)
+	GetUser() ([]models.User, error)
+	GetUserById(id string) (models.User, error)
+	GetUserByEmail(email string) (models.User, error)
 }
 
 type userService struct {
@@ -30,48 +30,20 @@ func (s *userService) GetUser() ([]models.User, error) {
 	return s.repository.GetUser()
 }
 
+func (s *userService) GetUserByEmail(email string) (models.User, error) {
+	return s.repository.GetUserByEmail(email)
+}
+
 func (s *userService) GetUserById(id string) (models.User, error) {
 	return s.repository.GetUserById(id)
-}
-
-func (s *userService) UpdateUser(id string, inputUpdate models.User) (models.User, error) {
-	password := []byte(inputUpdate.Password)
-	hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-	inputUpdate.Password = string(hashedPassword)
-
-	findUser, _ := s.repository.FindUserByEmail(inputUpdate.Email)
-	if findUser.Email != "" {
-		return findUser, errors.New("Email Already Exists")
-	}
-
-	return s.repository.UpdateUser(id, inputUpdate)
-}
-
-func (s *userService) AddUser(addUser models.AddUser) error {
-	password := []byte(addUser.Password)
-	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	generateUUID := uuid.Must(uuid.NewRandom())
-	findUser, err := s.repository.FindUserByEmail(addUser.Email)
-
-	if findUser.Email != "" {
-		return errors.New("Email Already Exists")
-	}
-
-	addUser.User_uuid = generateUUID
-	addUser.Password = string(hashedPassword)
-	return s.repository.AddUser(addUser)
 }
 
 func (s *userService) Login(inputLogin models.InputLogin) (models.User, error) {
 	email := inputLogin.Email
 	password := inputLogin.Password
 
-	findUser, _ := s.repository.FindUserByEmail(email)
-	if findUser.User_uuid == "" {
+	findUser, _ := s.repository.GetUserByEmail(email)
+	if findUser.User_id == "" {
 		return findUser, errors.New("User Doesnt Exist")
 	}
 
@@ -81,6 +53,25 @@ func (s *userService) Login(inputLogin models.InputLogin) (models.User, error) {
 	}
 
 	return findUser, nil
+}
+
+func (s *userService) AddUser(addUser models.AddUser) error {
+	password := []byte(addUser.Password)
+	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	addUser.Password = string(hashedPassword)
+	return s.repository.AddUser(addUser)
+}
+
+func (s *userService) UpdateUser(id string, inputUpdate models.User) (models.User, error) {
+	password := []byte(inputUpdate.Password)
+	hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	inputUpdate.Password = string(hashedPassword)
+
+	return s.repository.UpdateUser(id, inputUpdate)
 }
 
 func (s *userService) DeleteUser(id string) (models.User, error) {
