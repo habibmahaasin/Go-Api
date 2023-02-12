@@ -1,11 +1,11 @@
 package routes
 
 import (
-	jwttoken "gop-api/app/jwt-token"
 	"gop-api/app/middlewares"
 	"gop-api/modules/user/controller"
 	"gop-api/modules/user/repository"
 	"gop-api/modules/user/service"
+	jwttoken "gop-api/package/jwt-token"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +22,7 @@ func Init(db *gorm.DB) *gin.Engine {
 
 	router.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "endpoint not found",
+			"message": "Endpoint Not Found",
 		})
 	})
 

@@ -1,13 +1,16 @@
 package controller
 
 import (
-	jwttoken "gop-api/app/jwt-token"
+	"errors"
 	"gop-api/modules/user/models"
 	"gop-api/modules/user/service"
 	apiresponse "gop-api/package/api-response"
+	errorresponse "gop-api/package/error-response"
+	jwttoken "gop-api/package/jwt-token"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type userHandler struct {
@@ -26,11 +29,10 @@ func (h *userHandler) User(c *gin.Context) {
 		return
 	}
 
-	var userResponse []models.UserResponse
-
+	var userResponse []apiresponse.UserResponse
 	for _, r := range user {
 		response := apiresponse.UserFormat(r.User_id, r.Name, r.Email)
-		userResponse = append(userResponse, models.UserResponse(response))
+		userResponse = append(userResponse, apiresponse.UserResponse(response))
 	}
 
 	c.JSON(http.StatusOK, apiresponse.ResponData("Success", http.StatusOK, userResponse))
@@ -40,7 +42,17 @@ func (h *userHandler) AddUser(c *gin.Context) {
 	var input models.AddUser
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
+		var validator validator.ValidationErrors
+		if errors.As(err, &validator) {
+			res := make([]errorresponse.ErrorStruct, len(validator))
+			for i, e := range validator {
+				res[i] = errorresponse.ErrorStruct{
+					Field: e.Field(),
+					Error: errorresponse.BindingValidator(e),
+				}
+			}
+			c.JSON(400, apiresponse.ResponStatus(res, http.StatusBadRequest))
+		}
 		return
 	}
 
@@ -63,8 +75,17 @@ func (h *userHandler) Login(c *gin.Context) {
 	var inputLogin models.InputLogin
 
 	if err := c.ShouldBindJSON(&inputLogin); err != nil {
-		response := apiresponse.ResponStatus(err.Error(), http.StatusBadRequest)
-		c.JSON(400, response)
+		var validator validator.ValidationErrors
+		if errors.As(err, &validator) {
+			res := make([]errorresponse.ErrorStruct, len(validator))
+			for i, e := range validator {
+				res[i] = errorresponse.ErrorStruct{
+					Field: e.Field(),
+					Error: errorresponse.BindingValidator(e),
+				}
+			}
+			c.JSON(400, apiresponse.ResponStatus(res, http.StatusBadRequest))
+		}
 		return
 	}
 
@@ -96,7 +117,7 @@ func (h *userHandler) DetailUser(c *gin.Context) {
 	}
 
 	if user.User_id == "" {
-		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
+		c.JSON(http.StatusNotFound, apiresponse.ResponStatus("User Not Found", http.StatusNotFound))
 		return
 	}
 
@@ -109,24 +130,39 @@ func (h *userHandler) UpdateUser(c *gin.Context) {
 	var input models.User
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
+		var validator validator.ValidationErrors
+		if errors.As(err, &validator) {
+			res := make([]errorresponse.ErrorStruct, len(validator))
+			for i, e := range validator {
+				res[i] = errorresponse.ErrorStruct{
+					Field: e.Field(),
+					Error: errorresponse.BindingValidator(e),
+				}
+			}
+			c.JSON(400, apiresponse.ResponStatus(res, http.StatusBadRequest))
+		}
 		return
 	}
 
 	checkId, _ := h.service.GetUserById(id)
 	if id != checkId.User_id {
-		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
+		c.JSON(http.StatusNotFound, apiresponse.ResponStatus("User Not Found", http.StatusNotFound))
 		return
 	}
 
-	userUpdated, err := h.service.UpdateUser(id, input)
+	checkEmail, _ := h.service.GetUserByEmail(input.Email)
+	if checkEmail.Email != checkId.Email && checkEmail.Email != "" {
+		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("Email Already Used", http.StatusBadRequest))
+		return
+	}
+
+	_, err := h.service.UpdateUser(id, input)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus(err.Error(), http.StatusBadRequest))
 		return
 	}
 
-	response := apiresponse.UserFormat(userUpdated.User_id, userUpdated.Name, userUpdated.Email)
-	c.JSON(http.StatusOK, apiresponse.ResponData("Success", http.StatusOK, response))
+	c.JSON(http.StatusOK, apiresponse.ResponStatus("Success", http.StatusOK))
 }
 
 func (h *userHandler) DeleteUser(c *gin.Context) {
@@ -134,7 +170,7 @@ func (h *userHandler) DeleteUser(c *gin.Context) {
 
 	check, _ := h.service.GetUserById(id)
 	if id != check.User_id {
-		c.JSON(http.StatusBadRequest, apiresponse.ResponStatus("User Not Found", http.StatusBadRequest))
+		c.JSON(http.StatusNotFound, apiresponse.ResponStatus("User Not Found", http.StatusNotFound))
 		return
 	}
 

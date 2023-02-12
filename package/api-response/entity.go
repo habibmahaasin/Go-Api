@@ -1,14 +1,14 @@
 package apiresponse
 
 type ResponseDt struct {
-	Message string      `json:"message"`
-	Code    int         `json:"code"`
-	Data    interface{} `json:"data"`
+	Message     string      `json:"message"`
+	Status_code int         `json:"status_code"`
+	Data        interface{} `json:"data"`
 }
 
 type ResponseSts struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
+	Message     interface{} `json:"message"`
+	Status_code int         `json:"status_code"`
 }
 
 type UserResponse struct {

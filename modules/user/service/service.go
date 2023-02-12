@@ -44,7 +44,7 @@ func (s *userService) Login(inputLogin models.InputLogin) (models.User, error) {
 
 	findUser, _ := s.repository.GetUserByEmail(email)
 	if findUser.User_id == "" {
-		return findUser, errors.New("User Doesnt Exist")
+		return findUser, errors.New("Email Doesnt Exist")
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(findUser.Password), []byte(password))

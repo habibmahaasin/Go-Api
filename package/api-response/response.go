@@ -2,17 +2,17 @@ package apiresponse
 
 func ResponData(message string, code int, data interface{}) ResponseDt {
 	jsonResp := ResponseDt{
-		Code:    code,
-		Message: message,
-		Data:    data,
+		Status_code: code,
+		Message:     message,
+		Data:        data,
 	}
 	return jsonResp
 }
 
-func ResponStatus(message string, code int) ResponseSts {
+func ResponStatus(message interface{}, code int) ResponseSts {
 	jsonResp := ResponseSts{
-		Code:    code,
-		Message: message,
+		Status_code: code,
+		Message:     message,
 	}
 	return jsonResp
 }

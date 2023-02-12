@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	jwttoken "gop-api/app/jwt-token"
 	"gop-api/modules/user/service"
+	jwttoken "gop-api/package/jwt-token"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
