@@ -25,6 +25,7 @@ func Init(db *gorm.DB) *gin.Engine {
 			"message": "Endpoint Not Found",
 		})
 	})
+	router.Use(middlewares.CORSMiddleware())
 
 	apiV1 := router.Group("api/v1/user")
 	apiV1.GET("/", middlewares.ApiAuth(token, userService), userHandler.User)

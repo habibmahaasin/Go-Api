@@ -99,10 +99,10 @@ func (h *userHandler) Login(c *gin.Context) {
 	response := apiresponse.UserFormat(user.User_id, user.Name, user.Email)
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":  http.StatusOK,
-		"message": "Success",
-		"data":    response,
-		"token":   token,
+		"status_code": http.StatusOK,
+		"message":     "Success",
+		"data":        response,
+		"token":       token,
 	})
 
 }
