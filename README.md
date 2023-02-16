@@ -9,15 +9,25 @@ $ git clone https://github.com/habibmahaasin/Go-Api.git
 ```
 2. Import SQL file yang ada pada direktori :
 ```
-./sql/gop-api.sql 
+./sql/mysql.sql 
 ```
-3. Run and Setup Golang
+ atau 
+```
+./sql/postgres.sql 
+```
+sesuaikan penggunaan dengan database yang ingin digunakan
+
+3. Sesuaikan penggunaan gorm mysql/postgresql pada halaman `app/database/database.go`
+4. Sesuaikan isi file `.env` dengan settingan local yang ada
+5. Sesuaikan penggunaan query pada halaman `modules/user/repository/repository.go` sesuai database yang digunakan
+
+6. Run and Setup Golang
 ```
 go run main.go
 ```
-4. Endpoint siap digunakan.
-5. Untuk dapat mengakses endpoint perlu set header `access-token` : `jwt token`
-6. `access-token` dapat didapatkan setelah melakukan login dengan akun yang tersedia/mendaftarkan akun baru.
+7. Endpoint siap digunakan.
+8. Untuk dapat mengakses endpoint perlu set header `access-token` : `jwt token`
+9. `access-token` dapat didapatkan setelah melakukan login dengan akun yang tersedia/mendaftarkan akun baru.
 
 <br></br>
 ## List Endpoint yang dapat diakses saat ini :
