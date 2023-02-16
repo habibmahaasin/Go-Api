@@ -27,6 +27,12 @@ func Init(db *gorm.DB) *gin.Engine {
 		})
 	})
 
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "Index Page",
+		})
+	})
+
 	apiV1 := router.Group("api/v1/user")
 	apiV1.GET("/", middlewares.ApiAuth(token, userService), userHandler.User)
 	apiV1.POST("/login", userHandler.Login)

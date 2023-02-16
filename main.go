@@ -5,6 +5,7 @@ import (
 	"gop-api/app/database"
 	"gop-api/routes"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -16,4 +17,5 @@ func main() {
 	router := routes.Init(db)
 
 	router.Run(":" + conf.App.Port)
+	http.ListenAndServe(":"+conf.App.Port, nil)
 }
