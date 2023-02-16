@@ -28,7 +28,7 @@ func Init(db *gorm.DB) *gin.Engine {
 	})
 
 	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"message": "Index Page",
 		})
 	})
