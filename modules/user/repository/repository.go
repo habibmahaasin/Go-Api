@@ -43,7 +43,10 @@ func (r *userRepository) GetUserByEmail(email string) (models.User, error) {
 }
 
 func (r *userRepository) AddUser(addUser models.AddUser) error {
-	err := r.db.Raw("INSERT INTO users (user_id, name, email, password, date_created, date_updated) VALUES(uuid(),?,?,?,?,?)", addUser.Name, addUser.Email, addUser.Password, time.Now(), time.Now()).Scan(&addUser).Error
+	// change values uuid based on the database you are using
+	// for postgres = uuid_generate_v4()
+	// for mysql = uuid()
+	err := r.db.Raw("INSERT INTO users (user_id, name, email, password, date_created, date_updated) VALUES(uuid_generate_v4(),?,?,?,?,?)", addUser.Name, addUser.Email, addUser.Password, time.Now(), time.Now()).Scan(&addUser).Error
 	return err
 }
 
