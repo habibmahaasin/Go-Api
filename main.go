@@ -16,6 +16,6 @@ func main() {
 	db := database.Init(conf)
 	router := routes.Init(db)
 
+	log.Fatal(http.ListenAndServe(":"+conf.App.Port, router))
 	router.Run(":" + conf.App.Port)
-	http.ListenAndServe(":"+conf.App.Port, nil)
 }
