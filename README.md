@@ -1,6 +1,4 @@
 # Go-Api
-Repository untuk belajar membuat API dengan golang dan library Gin dan Gorm
-#
 
 Cara Setup dan Menjalankan
 1. Clone/Download Repository
