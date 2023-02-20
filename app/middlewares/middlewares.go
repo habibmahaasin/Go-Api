@@ -2,11 +2,13 @@ package middlewares
 
 import (
 	"gop-api/modules/user/service"
+	apiresponse "gop-api/package/api-response"
 	jwttoken "gop-api/package/jwt-token"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/time/rate"
 )
 
 func ApiAuth(jwtAuth jwttoken.JwtToken, userService service.UserService) gin.HandlerFunc {
@@ -66,6 +68,17 @@ func CORSMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		c.Next()
+	}
+}
+
+func RateLimiter() gin.HandlerFunc {
+	limit := rate.NewLimiter(2, 4)
+	return func(c *gin.Context) {
+		if !limit.Allow() {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, apiresponse.ResponStatus("Too Many Request", http.StatusTooManyRequests))
+			return
+		}
 		c.Next()
 	}
 }

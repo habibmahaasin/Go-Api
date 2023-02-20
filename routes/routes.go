@@ -32,13 +32,13 @@ func Init(db *gorm.DB) *gin.Engine {
 			"message": "Index Page",
 		})
 	})
+	router.POST("/login", userHandler.Login)
+	router.POST("/register", userHandler.AddUser)
 
-	apiV1 := router.Group("api/v1/user")
-	apiV1.GET("/", middlewares.ApiAuth(token, userService), userHandler.User)
-	apiV1.POST("/login", userHandler.Login)
-	apiV1.POST("/register", userHandler.AddUser)
-	apiV1.GET("/:id", middlewares.ApiAuth(token, userService), userHandler.DetailUser)
-	apiV1.PUT("/:id", middlewares.ApiAuth(token, userService), userHandler.UpdateUser)
-	apiV1.DELETE("/:id", middlewares.ApiAuth(token, userService), userHandler.DeleteUser)
+	apiV1 := router.Group("api/v1/user", middlewares.ApiAuth(token, userService), middlewares.RateLimiter())
+	apiV1.GET("/", userHandler.User)
+	apiV1.GET("/:id", userHandler.DetailUser)
+	apiV1.PUT("/:id", userHandler.UpdateUser)
+	apiV1.DELETE("/:id", userHandler.DeleteUser)
 	return router
 }
