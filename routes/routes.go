@@ -5,6 +5,7 @@ import (
 	"gop-api/modules/user/controller"
 	"gop-api/modules/user/repository"
 	"gop-api/modules/user/service"
+	htmlrender "gop-api/package/html-render"
 	jwttoken "gop-api/package/jwt-token"
 	"net/http"
 
@@ -16,10 +17,12 @@ func Init(db *gorm.DB) *gin.Engine {
 	router := gin.Default()
 	router.Use(middlewares.CORSMiddleware())
 	token := jwttoken.NewJwtToken()
+	router.HTMLRender = htmlrender.Render("./public/templates")
 
 	userRepository := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepository)
 	userHandler := controller.NewUserHandler(userService, token)
+	pagesView := controller.NewPagesView(userService)
 
 	router.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -27,11 +30,9 @@ func Init(db *gorm.DB) *gin.Engine {
 		})
 	})
 
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"message": "Index Page",
-		})
-	})
+	router.GET("/", pagesView.Indexview)
+	router.GET("/others", pagesView.Others)
+
 	router.POST("/login", userHandler.Login)
 	router.POST("/register", userHandler.AddUser)
 
