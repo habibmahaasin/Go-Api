@@ -5,6 +5,7 @@ import (
 	"gop-api/app/database"
 	"gop-api/routes"
 	"log"
+	"os"
 )
 
 func main() {
@@ -15,6 +16,6 @@ func main() {
 	db := database.Init(conf)
 	router := routes.Init(db)
 
-	router.Run(":" + conf.App.Port) // Uncomment for running in local
-	// router.Run(":" + os.Getenv("PORT"))
+	// router.Run(":" + conf.App.Port) // Uncomment for running in local
+	router.Run(":" + os.Getenv("PORT"))
 }
